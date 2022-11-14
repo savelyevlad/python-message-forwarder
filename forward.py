@@ -58,7 +58,7 @@ async def telegram_monitor(
         async def _(event):
             message = event.message
             logger.info(f'Forwarding message: {event.raw_text[:10]}...')
-            await client.send_message(dialogs[1].entity, message)
+            await client.send_message(forward_to, message)
 
         await client.run_until_disconnected()
 
