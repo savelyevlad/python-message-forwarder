@@ -1,1 +1,3 @@
 config.py
+telegram_forward.session
+__pycache__
