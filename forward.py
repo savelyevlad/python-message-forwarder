@@ -10,7 +10,7 @@ from loguru import logger
 from questionary import ValidationError, Validator
 from telethon import TelegramClient, events
 from telethon.utils import parse_username
-from telethon.tl.functions.messages import CheckChatInviteRequest
+from telethon import functions
 
 
 class InterceptHandler(logging.Handler):
@@ -42,6 +42,19 @@ logger.add(
 logging.basicConfig(handlers=[InterceptHandler()], level=0)
 
 
+async def reply_to_message_in_destination_chats(client, message, forward_to):
+    
+    reply_message = await message.get_reply_message()
+
+    messages_to_reply = client.iter_messages(forward_to, search=reply_message.message)
+
+    async for message_to_reply in reversed(messages_to_reply):
+        await client.send_message(forward_to, message, reply_to=message_to_reply.id)
+        return
+
+    logger.error("reply message wasn't found")
+
+
 async def telegram_monitor(
     tg_api_id: int, tg_api_hash: str, tg_channels: List[Union[int, str]], forward_to: Union[int, str]
 ):
@@ -58,7 +71,11 @@ async def telegram_monitor(
         async def _(event):
             message = event.message
             logger.info(f'Forwarding message: {event.raw_text[:10]}...')
-            await client.send_message(forward_to, message)
+            
+            if message.reply_to is not None:
+                await reply_to_message_in_destination_chats(client, message, forward_to)
+            else:
+                await client.send_message(forward_to, message)
 
         await client.run_until_disconnected()
 
