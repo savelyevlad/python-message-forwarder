@@ -55,6 +55,12 @@ async def reply_to_message_in_destination_chats(client, message, forward_to):
     logger.error("reply message wasn't found")
 
 
+def find_entity_with_id(dialogs, forward_to):
+    for dialog in dialogs:
+        if str(dialog.entity.id) == str(forward_to):
+            return dialog.entity
+
+
 async def telegram_monitor(
     tg_api_id: int, tg_api_hash: str, tg_channels: List[Union[int, str]], forward_to: Union[int, str]
 ):
@@ -72,10 +78,12 @@ async def telegram_monitor(
             message = event.message
             logger.info(f'Forwarding message: {event.raw_text[:10]}...')
             
+            entity_forward_to = find_entity_with_id(dialogs, forward_to)
+
             if message.reply_to is not None:
-                await reply_to_message_in_destination_chats(client, message, forward_to)
+                await reply_to_message_in_destination_chats(client, message, entity_forward_to)
             else:
-                await client.send_message(forward_to, message)
+                await client.send_message(entity_forward_to, message)
 
         await client.run_until_disconnected()
 
