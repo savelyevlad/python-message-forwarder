@@ -49,8 +49,9 @@ async def reply_to_message_in_destination_chats(client, message, forward_to):
     messages_to_reply = client.iter_messages(forward_to, search=reply_message.message)
 
     async for message_to_reply in reversed(messages_to_reply):
-        await client.send_message(forward_to, message, reply_to=message_to_reply.id)
-        return
+        if message_to_reply.message == reply_message.message:
+            await client.send_message(forward_to, message, reply_to=message_to_reply.id)
+            return
 
     logger.error("reply message wasn't found")
 
