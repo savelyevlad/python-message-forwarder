@@ -50,16 +50,14 @@ async def reply_to_message_in_destination_chats(client, message, forward_to):
 
     async for message_to_reply in reversed(messages_to_reply):
         if message_to_reply.message == reply_message.message:
-            await client.send_message(forward_to, message, reply_to=message_to_reply.id)
+            await client.send_message(forward_to, message.message, reply_to=message_to_reply.id)
             return
 
     logger.error("reply message wasn't found")
 
 
 def find_entity_with_id(dialogs, forward_to):
-    for dialog in dialogs:
-        if str(dialog.entity.id) == str(forward_to):
-            return dialog.entity
+    return [x for x in dialogs if str(x.id) == forward_to][0]
 
 
 async def telegram_monitor(
@@ -84,7 +82,7 @@ async def telegram_monitor(
             if message.reply_to is not None:
                 await reply_to_message_in_destination_chats(client, message, entity_forward_to)
             else:
-                await client.send_message(entity_forward_to, message)
+                await client.send_message(entity_forward_to, message.message)
 
         await client.run_until_disconnected()
 
